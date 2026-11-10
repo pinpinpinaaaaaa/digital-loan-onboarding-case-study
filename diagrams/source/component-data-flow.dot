@@ -1,0 +1,18 @@
+digraph A { graph [rankdir=TB, fontname="Arial", nodesep=0.5, ranksep=0.75, pad=0.3, label="Component and Data Flow Diagram: Digital Loan Onboarding\n", labelloc=t, fontsize=18];
+node [fontname="Arial", fontsize=11, shape=box, style="rounded,filled", fillcolor="#DDEBF7", color="#1F3A68", penwidth=1.3, width=2.2];
+edge [fontname="Arial", fontsize=9.5, color="#404040", arrowsize=0.8];
+web [label="Web app"]; mob [label="Mobile app (iOS / Android)"];
+gw [label="API Gateway\n(auth, rate limit, TLS)", fillcolor="#FFE699", color="#7F6000"];
+orch [label="Onboarding Orchestrator\n+ Decision Engine (rules)", fillcolor="#E2EFDA", color="#375623", width=3];
+kyc [label="KYC Service"]; bureau [label="Credit Bureau API\n(external, soft pull)", fillcolor="#FCE4D6", color="#C55A11"];
+cb [label="Core Banking System"]; mrq [label="Manual Review Queue\n(Operations console)"]; notif [label="Notification Service\n(email / SMS / push)"];
+audit [label="Audit Logging Service (immutable / WORM)", fillcolor="#F8CBAD", color="#C00000", width=6];
+{rank=same; web; mob} {rank=same; kyc; bureau; cb; mrq; notif}
+web->gw [label=" application + consent\n (HTTPS)"]; mob->gw [label=" application + consent\n (HTTPS)"];
+gw->orch [label=" validated request + token"];
+orch->kyc [label="1 KYC request\n(name, DOB,\naddress, ID)"]; orch->bureau [label="2 soft-pull request\n(consent ref)"]; orch->cb [label="3 application data\n& decision"];
+orch->mrq [label="case for review"]; orch->notif [label="decision event"];
+kyc->audit [label="verification result logged", color="#C00000", fontcolor="#C00000"]; orch->audit [label="consent, credit pull,\ndecision logged", color="#C00000", fontcolor="#C00000", constraint=false];
+cb->audit [color="#C00000"];
+kyc->orch [label="result + score", style=dashed, constraint=false]; bureau->orch [label="credit score", style=dashed, constraint=false]; mrq->audit [label="agent actions", color="#C00000", fontcolor="#C00000"]; notif->audit [label="notice sent", color="#C00000", fontcolor="#C00000"];
+}

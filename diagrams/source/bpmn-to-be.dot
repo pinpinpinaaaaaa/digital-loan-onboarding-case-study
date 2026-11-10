@@ -1,0 +1,31 @@
+digraph B { graph [rankdir=TB, fontname="Arial", nodesep=0.2, ranksep=0.28, pad=0.3, compound=true, newrank=true, label="To-Be BPMN: Digital Loan Pre-Approval and Onboarding (MVP)\n", labelloc=t, fontsize=22];
+node [fontname="Arial", fontsize=16]; edge [fontname="Arial", fontsize=14, color="#404040", arrowsize=0.8];
+subgraph cluster_c { label="Customer (Web / Mobile)"; style="filled"; fillcolor="#EEF3FB"; color="#1F3A68"; fontsize=17; labeljust=l;
+ start [shape=circle, label="Start", width=0.9, fixedsize=true, style=filled, fillcolor="#C6EFCE", color="#375623", penwidth=3];
+ t1 [shape=box, style="rounded,filled", fillcolor=white, label="Start application\n& give consent"];
+ t2 [shape=box, style="rounded,filled", fillcolor=white, label="Enter personal,\nKYC & income data"];
+ t9 [shape=box, style="rounded,filled", fillcolor=white, label="Fix missing /\ninvalid data"];
+ eA [shape=doublecircle, label="End:\npre-approved", fontsize=13, width=1.3, fixedsize=true, style=filled, fillcolor="#F8CBAD", color="#C00000", penwidth=2];
+ eD [shape=doublecircle, label="End:\ndeclined +\nnotice", fontsize=13, width=1.3, fixedsize=true, style=filled, fillcolor="#F8CBAD", color="#C00000", penwidth=2];
+}
+subgraph cluster_s { label="Onboarding System (Decision Engine)"; style="filled"; fillcolor="#F3F9EE"; color="#375623"; fontsize=17; labeljust=l;
+ g0 [shape=diamond, style=filled, fillcolor="#FFE699", label="X\nComplete?", width=1.2, height=0.9];
+ t3 [shape=box, style="rounded,filled", fillcolor=white, label="Log consent\n(Audit Log)"];
+ t4 [shape=box, style="rounded,filled", fillcolor=white, label="Verify identity\n(KYC Service)"];
+ g1 [shape=diamond, style=filled, fillcolor="#FFE699", label="X\nKYC result?", width=1.3, height=0.9];
+ t5 [shape=box, style="rounded,filled", fillcolor=white, label="Soft credit pull\n(Credit Bureau API)\nretry x3 on timeout"];
+ g2 [shape=diamond, style=filled, fillcolor="#FFE699", label="X\nCredit decision\n(rules)", width=1.5, height=1.0];
+ t6 [shape=box, style="rounded,filled", fillcolor=white, label="Auto pre-approve:\ncreate offer"];
+ t7 [shape=box, style="rounded,filled", fillcolor=white, label="Auto decline:\nrecord reasons"];
+ t8 [shape=box, style="rounded,filled", fillcolor=white, label="Notify customer\n(email / SMS / in-app)"];
+}
+subgraph cluster_o { label="Operations: Manual Review"; style="filled"; fillcolor="#FDF0E6"; color="#C55A11"; fontsize=17; labeljust=l;
+ q [shape=box, style="rounded,filled", fillcolor=white, label="Manual review queue\n(SLA 4 business hours)"];
+ g3 [shape=diamond, style=filled, fillcolor="#FFE699", label="X\nAgent\ndecision", width=1.2, height=0.9];
+}
+start->t1->t2->g0; g0->t9 [label="No"]; t9->t2; g0->t3 [label="Yes"]; t3->t4->g1;
+g1->t5 [label="Pass"]; g1->q [label="Review /\nmismatch"]; g1->t7 [label="Fail"];
+t5->g2; g2->t6 [label="Score >= 680\nDTI <= 40%"]; g2->q [label="Borderline\nor API failure"]; g2->t7 [label="Score < 600"];
+q->g3; g3->t6 [label="Approve"]; g3->t7 [label="Decline"];
+t6->t8; t7->t8; t8->eA [label="approved"]; t8->eD [label="declined"];
+}
